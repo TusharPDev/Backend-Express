@@ -1,18 +1,23 @@
 import express from "express";
+import { apiKeyMiddleware, limiter } from "./apiKeyMiddleware.js";
 
 const app = express();
 
+app.set("trust proxy", ["loopback", "linklocal", "uniquelocal"]);
 
-//This is a middle ware function
-const myLoggerMiddleware = function (req, res, next) {
-  console.log("LOGGED");
+const API_KEY = "secretapikey";
+app.use((req, res, next) => {
+  req.headers["x-api-key"] = API_KEY;
+  console.log("x-api-key:", req.headers["x-api-key"]); 
   next();
-};
+});
 
-app.use(myLoggerMiddleware);
+app.use(limiter);
+
+app.use(apiKeyMiddleware);
 
 app.get("/", (req, res) => {
-  res.send("Hey, hello this server listens to tushar!");
+  res.send("API key validation successful! You can access this resource.");
 });
 
 app.listen(3000, () => {
